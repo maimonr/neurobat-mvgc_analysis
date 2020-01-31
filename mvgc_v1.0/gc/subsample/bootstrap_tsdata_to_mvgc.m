@@ -62,10 +62,11 @@
 %
 %%
 
-function FB = bootstrap_tsdata_to_mvgc(U,x,y,p,nsamps,acmaxlags,acdectol)
+function FB = bootstrap_tsdata_to_mvgc(U,x,y,p,nsamps,acmaxlags,acdectol,verbose)
 
 if nargin < 6, acmaxlags = []; end % ensure default
 if nargin < 7, acdectol  = []; end % ensure default
+if nargin < 8, verbose = false; end
 
 [n,m,N] = size(U);
 assert(m > p,'too many lags');
@@ -102,7 +103,10 @@ E   = reshape(E,n,m,N);        % put residuals back into per-trial form
 
 EB = zeros(n,m,N);
 for s = 1:nsamps
-    fprintf('MVGC: bootstrap sample %d of %d',s,nsamps);
+    if verbose
+        fprintf('MVGC: bootstrap sample %d of %d',s,nsamps);
+        fprintf('\n');
+    end
     
     % generate bootstrap time series
     
@@ -124,6 +128,4 @@ for s = 1:nsamps
     [G,res] = var_to_autocov(AB,SIGB,acmaxlags,acdectol);
     if res.error, fprintf(' *** bad VAR: %s\n',res.errmsg); continue; end
     FB(s) = autocov_to_mvgc(G,x,y);
-    
-    fprintf('\n');
 end
