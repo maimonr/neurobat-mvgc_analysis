@@ -51,7 +51,7 @@ end
 tstat     = 'chi2';     % statistical test for MVGC:  'F' for Granger's F-test (default) or 'chi2' for Geweke's chi2 test
 alpha     = 0.05;   % significance level for significance test
 mhtc      = 'Bonferroni';  % multiple hypothesis test correction (see routine 'significance')
-
+acmaxlags = 100;
 ntrials   = size(X,3);     % number of trials
 nobs      = size(X,2);   % number of observations per trial
 
@@ -107,7 +107,7 @@ parfor win_k = 1:nWin
             continue
         end
         
-        [G,info] = var_to_autocov(A,SIG);
+        [G,info] = var_to_autocov(A,SIG,acmaxlags);
         if info.error
             fprintf(2,' *** skipping - bad VAR (%s)\n',info.errmsg);
             continue
@@ -148,7 +148,7 @@ parfor win_k = 1:nWin
                     
                 case 'boot'
                     
-                    FF_win(channel_k1,channel_k2,:) = bootstrap_tsdata_to_mvgc(Xwin,idx1,idx2,mOrder,nSub);
+                    FF_win(channel_k1,channel_k2,:) = bootstrap_tsdata_to_mvgc(Xwin,idx1,idx2,mOrder,nSub,acmaxlags);
                     
                 case 'empirical'
                     
