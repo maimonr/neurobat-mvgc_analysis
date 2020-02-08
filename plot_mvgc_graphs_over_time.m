@@ -1,6 +1,6 @@
 function plot_mvgc_graphs_over_time(mvgc_over_time,plotType)
 
-edgeScale = 5;
+edgeScale = 0.75;
 nC = 255;
 c = [0.75*ones(nC,1) repmat(linspace(0.9,0,nC)',1,2)];
 
@@ -26,7 +26,10 @@ switch plotType
                 edgeWeights = edgeScale *G{exp_k,t_k}.Edges.Weight/maxW(exp_k);
                 plot(G{exp_k,t_k},'LineWidth',edgeWeights,'EdgeCData',edgeWeights,'Layout','circle','NodeColor','k','EdgeAlpha',1,'ArrowSize',12)
                 axis square
-                set(gca,'CLim',edgeScale*[0.1 1])
+                set(gca,'CLim',[0.1 1])
+                if exp_k == 1
+                    title(sprintf('%2.1f %%',100*t_k/nT));
+                end
             end
         end
         
@@ -37,13 +40,20 @@ switch plotType
         cla
         for exp_k = 1:2
             [~,idx] = min(abs(mvgc_over_time(exp_k).time));
-%             maxW = max(cellfun(@(x) max(x(:,:,idx),[],'all'),mvgc_over_time(exp_k).FF));
+            %             maxW = max(cellfun(@(x) max(x(:,:,idx),[],'all'),mvgc_over_time(exp_k).FF));
             for t_k = 1:nT
                 maxW = max(mvgc_over_time(exp_k).FF{t_k}(:,:,idx),[],'all');
                 subplot(2,nT,nT*(exp_k-1) + t_k)
                 plot_pw(edgeScale*mvgc_over_time(exp_k).FF{t_k}(:,:,idx)/maxW)
                 axis square
-                set(gca,'CLim',edgeScale*[0 1])
+                set(gca,'CLim',[0 1])
+                if exp_k == 1
+                    title(sprintf('%2.0f %%',100*t_k/nT));
+                end
+                
+                h = gca;
+                h.XTick = [];
+                h.YTick = [];
             end
         end
         

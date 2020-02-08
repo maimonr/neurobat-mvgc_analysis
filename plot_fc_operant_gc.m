@@ -16,23 +16,21 @@ for exp_k = 1:length(FF_operant_call)
     operant_caller_idxs(exp_k) = find(batNums == operant_caller_bat_num(exp_k));
     operant_listener_idxs(exp_k) = setdiff(1:length(batNums),operant_caller_idxs(exp_k));
 end
-
-for operant_idx = {operant_listener_idxs,operant_caller_idxs}
-    X = cellfun(@(x,idx) reshape(x(:,idx,:),[size(x,1) size(x,3)]),FF_operant_call,num2cell(operant_idx{1}),'un',0);
-    X = cat(1,X{:});
-    mu = nanmean(X(:,operant_t<baselineT,:),'all');
-    sigma = nanstd(X(:,operant_t<baselineT,:),[],'all');
-%     X = nanmean(X,1);
-    XNorm = (X - mu)/sigma;
-%     X_conf_int = nan(2,length(operant_t));
-%     [X_conf_int(1,:),X_conf_int(2,:)] = mvgc_confint(0.05,X,8,50,1e3,4,4,0,'chi2');
-%     X_conf_int = (X_conf_int - mu)/sigma;
-%     boundedline(operant_t,XNorm',X_conf_int'/sqrt(2),[colors{k} '--'],'alpha')
-    boundedline(operant_t,nanmean(XNorm,1),nanstd(XNorm,[],1)/sqrt(length(operant_listener_idxs)),[colors{k} '--'],'alpha')
-    k = k + 1;
-end
-
-includeIdx = strcmp({mvgcStruct_comb.selectBat},'includeBat');
+% 
+% for operant_idx = {operant_listener_idxs,operant_caller_idxs}
+%     X = cellfun(@(x,idx) reshape(x(:,idx,:),[size(x,1) size(x,3)]),FF_operant_call,num2cell(operant_idx{1}),'un',0);
+%     X = cat(1,X{:});
+%     mu = nanmean(X(:,operant_t<baselineT,:),'all');
+%     sigma = nanstd(X(:,operant_t<baselineT,:),[],'all');
+%     %     X = nanmean(X,1);
+%     XNorm = (X - mu)/sigma;
+%     %     X_conf_int = nan(2,length(operant_t));
+%     %     [X_conf_int(1,:),X_conf_int(2,:)] = mvgc_confint(0.05,X,8,50,1e3,4,4,0,'chi2');
+%     %     X_conf_int = (X_conf_int - mu)/sigma;
+%     %     boundedline(operant_t,XNorm',X_conf_int'/sqrt(2),[colors{k} '--'],'alpha')
+%     boundedline(operant_t,nanmean(XNorm,1),nanstd(XNorm,[],1)/sqrt(length(operant_listener_idxs)),[colors{k} '--'],'alpha')
+%     k = k + 1;
+% end
 
 % Element 1 of 1st dimension of FF_self (source_target_k = 1) is the
 % influence of all other bats _ON_ a given bat (target). Element 2 of 1st dimension of
@@ -40,19 +38,13 @@ includeIdx = strcmp({mvgcStruct_comb.selectBat},'includeBat');
 % on all other bats.
 target_source_batNums = {operant_listener_bat_num,operant_caller_bat_num};
 for target_source_k = 1:2
-    batIdx = ismember(mvgcStruct_comb(includeIdx).batNums,target_source_batNums{target_source_k});
-    FF_current = mvgcStruct_comb(includeIdx).FF_self(target_source_k,:,batIdx);
-    mu = squeeze(mean(FF_current(:,mvgcStruct_comb(includeIdx).time<baselineT,:),'all'));
-    sigma = nanstd(FF_current(:,mvgcStruct_comb(includeIdx).time<baselineT,:),[],'all');
-    nBat = size(FF_current,3);
+    batIdx = ismember(mvgcStruct_comb.batNums,target_source_batNums{target_source_k});
+    FF_current = mvgcStruct_comb.FF_self(target_source_k,:,:,batIdx);
+    mu = squeeze(nanmean(FF_current(:,mvgcStruct_comb.time<baselineT,:,:),'all'));
+    sigma = nanstd(FF_current(:,mvgcStruct_comb.time<baselineT,:,:),[],'all');
+    nBat = size(FF_current,4);
     FFNorm = (FF_current - mu)/sigma;
-    
-    FF_conf_current = squeeze(mean(mvgcStruct_comb(includeIdx).FF_self_conf(target_source_k,:,batIdx,:),3));
-    FF_conf_current = (FF_conf_current - mu)/sigma;
-    
-    boundedline(mvgcStruct_comb(includeIdx).time,squeeze(mean(FFNorm,3)),FF_conf_current/sqrt(nBat),colors{target_source_k},'alpha')
-%     
-%     boundedline(mvgcStruct_comb(includeIdx).time,squeeze(mean(FFNorm,3)),squeeze(std(FFNorm,[],3))./sqrt(nBat),colors{target_source_k},'alpha')
+    boundedline(mvgcStruct_comb.time,squeeze(nanmean(FFNorm,[3 4])),squeeze(nanstd(FFNorm,[],[3 4]))./sqrt(nBat),colors{target_source_k},'alpha')
 end
 h = findobj(gca,'Type','Line');
 legend(flipud(h),{'Operant Listener -> Caller','Operant Caller -> Listener','FC Listener -> Caller','FC Caller -> Listener'})
