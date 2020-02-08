@@ -1,8 +1,9 @@
 function mvgc_over_time = calculate_mvgc_over_time(lfpPower,trialInfo,varargin)
-pnames = {'timeWin','stepSize','modelOrder','binningMethod','minCalls'};
-dflts  = {[-4 4],0.25,8,'equalCalls',50};
-[timeWin,stepSize,modelOrder,binningMethod,minCalls] = internal.stats.parseArgs(pnames,dflts,varargin{:});
+pnames = {'timeWin','stepSize','modelOrder','binningMethod','minCalls','acmaxlags','subSample','nSub'};
+dflts  = {[-4 4],0.25,8,'equalCalls',50,100,'none',100};
+[timeWin,stepSize,modelOrder,binningMethod,minCalls,acmaxlags,subSample,nSub] = internal.stats.parseArgs(pnames,dflts,varargin{:});
 nExp = length(lfpPower);
+tic;
 for exp_k = 1:nExp
     X = cat(3,lfpPower{exp_k}{:});
     trialInfo_tmp = [trialInfo{exp_k}{:}];
@@ -50,7 +51,10 @@ for exp_k = 1:nExp
     for k = 1:n_date_bins-1
         XX = X(:,:,dateIdx(k):dateIdx(k+1)-1);
         trialInfo_tmp.used_bat_nums = all_used_bat_nums(dateIdx(k):dateIdx(k+1)-1);
-        [FF{k},t] = calculate_mvgc(XX,trialInfo_tmp,'timeWin',timeWin,'stepSize',stepSize,'modelOrder',modelOrder);
+        [FF{k},t] = calculate_mvgc(XX,trialInfo_tmp,'timeWin',timeWin,...
+            'stepSize',stepSize,'modelOrder',modelOrder,'acmaxlags',acmaxlags,...
+            'subSample',subSample,'nSub',nSub);
+         sprintf('%d date bins out of %d done, %d/%d exps., %d sec elapsed',k,n_date_bins-1,exp_k,nExp,toc);
     end
     
     batNums = cellfun(@str2num,trialInfo_tmp.batNums);

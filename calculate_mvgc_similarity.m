@@ -1,9 +1,16 @@
 function [FF_sim, FF_sim_boot, FF_over_time, FF_over_time_boot] = calculate_mvgc_similarity(mvgc_over_time)
 
-t_idx{1} = true(1,length(mvgc_over_time(1).time));
-t_idx{2} = false(1,length(mvgc_over_time(2).time));
-t_idx{2}(5:22) = true;
-t = mvgc_over_time(1).time;
+if length(unique(cellfun(@length,{mvgc_over_time.time}))) > 1
+    [~,diff_t_idx(2)] = min(cellfun(@length,{mvgc_over_time.time}));
+    diff_t_idx(1) = setdiff(1:2,diff_t_idx(2));
+    
+    t_idx{diff_t_idx(1)} = true(1,length(mvgc_over_time(diff_t_idx(1)).time));
+    t_idx{diff_t_idx(2)} = false(1,length(mvgc_over_time(diff_t_idx(2)).time));
+    t = mvgc_over_time(diff_t_idx(1)).time;
+    [~,overlap_t_idx(1)] = min(abs(mvgc_over_time(diff_t_idx(2)).time - mvgc_over_time(diff_t_idx(1)).time(1)));
+    [~,overlap_t_idx(2)] = min(abs(mvgc_over_time(diff_t_idx(2)).time - mvgc_over_time(diff_t_idx(1)).time(end)));
+    t_idx{2}(overlap_t_idx(1):overlap_t_idx(2)) = true;
+end
 nBoot = 1e5;
 
 ff_tmp = arrayfun(@(exp,idx) cellfun(@(x) x(:,:,idx{1}),exp.FF,'un',0),mvgc_over_time,t_idx,'un',0);
