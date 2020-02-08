@@ -1,8 +1,8 @@
 function [FF, t, confint, pval, sig] = calculate_mvgc(lfp_power,trialInfo,varargin)
 
-pnames = {'trialSelection','selectBat','winSize','stepSize','timeWin','modelOrder','averageType','subSample','nSub','acmaxlags'};
-dflts  = {'all',[],1,0.25,[-Inf,Inf],'AIC','tetrode','none',10,100};
-[trialSelection,selectBat,winSize,stepSize,timeWin,mOrder_flag,averageType,subsampleFlag,nSub,acmaxlags] = internal.stats.parseArgs(pnames,dflts,varargin{:});
+pnames = {'trialSelection','selectBat','winSize','stepSize','timeWin','modelOrder','averageType','subSample','nSub'};
+dflts  = {'all',[],1,0.25,[-Inf,Inf],'AIC','tetrode','none',10};
+[trialSelection,selectBat,winSize,stepSize,timeWin,mOrder_flag,averageType,subsampleFlag,nSub] = internal.stats.parseArgs(pnames,dflts,varargin{:});
 
 if iscell(lfp_power)
     X = cat(3,lfp_power{:});
@@ -18,9 +18,11 @@ switch trialSelection
     case 'all'
         select_trial_idx = true(1,size(X,3));
     case 'includeBat'
+        
         all_used_bat_nums = [trialInfo.used_bat_nums];
         select_trial_idx = ismember(all_used_bat_nums,selectBat);
     case 'excludeBat'
+        
         all_used_bat_nums = [trialInfo.used_bat_nums];
         select_trial_idx = ~ismember(all_used_bat_nums,selectBat);
 end
@@ -49,7 +51,7 @@ end
 tstat     = 'chi2';     % statistical test for MVGC:  'F' for Granger's F-test (default) or 'chi2' for Geweke's chi2 test
 alpha     = 0.05;   % significance level for significance test
 mhtc      = 'Bonferroni';  % multiple hypothesis test correction (see routine 'significance')
-
+acmaxlags = 100;
 ntrials   = size(X,3);     % number of trials
 nobs      = size(X,2);   % number of observations per trial
 
@@ -84,10 +86,10 @@ sliding_win_idx = slidingWin(nobs,wnobs,wnobs-ev);
 nWin = size(sliding_win_idx,1);
 
 % loop through evaluation points
-[pval, sig] = deal(nan(nBat,nBat,nWin));
-confint = nan(nBat,nBat,nWin,2);
+
 if strcmp(subsampleFlag,'none')
-    FF = nan(nBat,nBat,nWin);
+    [FF, pval, sig] = deal(nan(nBat,nBat,nWin));
+    confint = nan(nBat,nBat,nWin,2);
 else
     FF = nan(nBat,nBat,nWin,nSub);
 end
@@ -147,7 +149,6 @@ for win_k = 1:nWin
     end
     
     FF(:,:,win_k,:) = FF_win;
-    sprintf('%d windows out of %d done, %s',win_k,nWin,datestr(datetime));
 %     if strcmp(subsampleFlag,'none')
 %         pval(:,:,win_k) = mvgc_pval(FF_win,mOrder,nobs,ntrials,1,1,nBat-2,tstat);
 %         [confint(:,:,win_k,1),confint(:,:,win_k,2)] = mvgc_confint(alpha,FF_win,mOrder,nobs,ntrials,1,1,nBat-2,tstat);
@@ -182,6 +183,6 @@ if info.error
     return
 end
 if info.aclags < info.acminlags % warn if number of autocov lags is too small (not a show-stopper)
-    fprintf(2,' *** WARNING: minimum %d lags required (decay factor = %e)\n',info.acminlags,realpow(info.rho,info.aclags));
+    fprintf(2,' *** WARNING: minimum %d lags required (decay factor = %e)',info.acminlags,realpow(info.rho,info.aclags));
 end
 end
