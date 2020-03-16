@@ -1,11 +1,11 @@
 function plot_mvgc_similarity(FF_sim,FF_sim_boot)
-alpha = 0.05/size(FF_sim,2);
-boundedline(linspace(0,100,size(FF_sim,2)),mean(FF_sim_boot,[1 3]),quantile(FF_sim_boot,1-alpha,[1 3])' - mean(FF_sim_boot,[1 3])','k','alpha')
-boundedline(linspace(0,100,size(FF_sim,2)),mean(FF_sim),std(FF_sim)./sqrt(size(FF_sim,1)),'r-o','alpha')
-xlabel('% of experimental timeline')
+histogram(FF_sim_boot(:),bins,'Normalization','probability','FaceColor','k','FaceAlpha',0.5)
+hold on
+histogram(FF_sim(:),bins,'Normalization','probability','FaceColor','r','FaceAlpha',0.5)
+axis square
+xlabel('Connectivity matrix similarity (correlation)')
+ylabel('Probability')
 set(gca,'FontSize',25)
-h = findobj(gca,'Type','Line');
-legend(h,'Shuffled (corrected alpha = 0.05)','Actual (SEM)')
+box off
+legend('Suffle','Actual')
 legend box off
-legend(h,'Shuffled (corrected alpha = 0.05)','Actual')
-ylabel('Average Similarity')
