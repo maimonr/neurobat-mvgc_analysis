@@ -43,9 +43,9 @@ if length(unique(cellfun(@length,{mvgcStruct.time}))) > 1
     [~,diff_t_idx(2)] = min(cellfun(@length,{mvgcStruct.time}));
     diff_t_idx(1) = setdiff(1:2,diff_t_idx(2));
     
-    t_idx{diff_t_idx(1)} = true(1,length(mvgcStruct(diff_t_idx(1)).time));
-    t_idx{diff_t_idx(2)} = false(1,length(mvgcStruct(diff_t_idx(2)).time));
-    t = mvgcStruct(diff_t_idx(1)).time;
+    t_idx{diff_t_idx(1)} = false(1,length(mvgcStruct(diff_t_idx(1)).time));
+    t_idx{diff_t_idx(2)} = true(1,length(mvgcStruct(diff_t_idx(2)).time));
+    t = mvgcStruct(diff_t_idx(2)).time;
     [~,overlap_t_idx(1)] = min(abs(mvgcStruct(diff_t_idx(2)).time - mvgcStruct(diff_t_idx(1)).time(1)));
     [~,overlap_t_idx(2)] = min(abs(mvgcStruct(diff_t_idx(2)).time - mvgcStruct(diff_t_idx(1)).time(end)));
     t_idx{2}(overlap_t_idx(1):overlap_t_idx(2)) = true;

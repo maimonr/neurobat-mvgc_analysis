@@ -1,8 +1,8 @@
 function [mvgcStruct, mvgcStruct_comb, mvgcStruct_nonfamiliar, mvgcStruct_comb_nonfamiliar, FF_sim, FF_sim_boot, FF_playback] = calculate_all_mvgc(mvgcData,varargin)
 
-pnames = {'calculationSelection','outDir'};
-dflts  = {'all',[]};
-[calculationSelection,outDir] = internal.stats.parseArgs(pnames,dflts,varargin{:});
+pnames = {'calculationSelection','outDir','subSample'};
+dflts  = {'all',[],'none'};
+[calculationSelection,outDir,subSample] = internal.stats.parseArgs(pnames,dflts,varargin{:});
 
 [mvgcStruct, mvgcStruct_comb, mvgcStruct_nonfamiliar, mvgcStruct_comb_nonfamiliar, FF_sim, FF_sim_boot, FF_playback] = deal(NaN);
 
@@ -10,22 +10,24 @@ if ~iscell(calculationSelection) && strcmp(calculationSelection,'all')
     calculationSelection = {'comm','over_time','familiar','similarity','allBats','operant','playback'};
 end
 
+mOrder = 8;
+timeWin = [-3 3];
+stepSize = 0.25;
+acmaxlags = 100;
+nSub = 1e3;
+
+params = struct('mOrder',mOrder,'timeWin',timeWin,'stepSize',stepSize,...
+    'acmaxlags',acmaxlags,'nSub',nSub,'subSample',subSample);
+
 saveData = ~isempty(outDir);
 if saveData
     dateStr = datestr(datetime,'mmddyyyy');
     fName = fullfile(outDir,['mvgcData_' dateStr '.mat']);
     if ~exist(fName,'file')
         runTime = datetime;
-        save(fName,'runTime');
+        save(fName,'params','runTime');
     end
 end
-
-mOrder = 8;
-timeWin = [-3 3];
-stepSize = 0.5;
-acmaxlags = 100;
-subSample = 'boot';
-nSub = 1e3;
 
 if ismember('comm',calculationSelection)
     mvgcStruct = ...

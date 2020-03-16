@@ -133,7 +133,7 @@ for win_k = 1:nWin
 %                     FE = empirical_var_to_mvgc(A,SIG,nobs,ntrials,idx1,idx2,0,10);
                     
                 case 'trialShuffle'
-                    for boot_k = 1:nSub
+                    parfor boot_k = 1:nSub
                         Xboot = Xwin;
                         permIdx = randperm(ntrials);
                         Xboot(idx1,:,:) = Xboot(idx1,:,permIdx);
@@ -147,7 +147,7 @@ for win_k = 1:nWin
     end
     
     FF(:,:,win_k,:) = FF_win;
-    sprintf('%d windows out of %d done, %s',win_k,nWin,datestr(datetime));
+    fprintf('%d windows out of %d done, %s',win_k,nWin,datestr(datetime));
 %     if strcmp(subsampleFlag,'none')
 %         pval(:,:,win_k) = mvgc_pval(FF_win,mOrder,nobs,ntrials,1,1,nBat-2,tstat);
 %         [confint(:,:,win_k,1),confint(:,:,win_k,2)] = mvgc_confint(alpha,FF_win,mOrder,nobs,ntrials,1,1,nBat-2,tstat);
@@ -168,8 +168,12 @@ end
 
 end
 
-function [G,A,SIG,info] = get_autocov(X,mOrder,regmode,acmaxlags)
-
+function [G,A,SIG,info] = get_autocov(X,mOrder,regmode,acmaxlags,varargin)
+if ~isempty(varargin)
+    verbose = varargin{1};
+else
+    verbose = false;
+end
 [A,SIG] = tsdata_to_var(X,mOrder,regmode);
 if isbad(A)
     fprintf(2,' *** skipping - VAR estimation failed\n');
@@ -177,11 +181,11 @@ if isbad(A)
 end
 
 [G,info] = var_to_autocov(A,SIG,acmaxlags);
-if info.error
+if verbose && info.error
     fprintf(2,' *** skipping - bad VAR (%s)\n',info.errmsg);
     return
 end
-if info.aclags < info.acminlags % warn if number of autocov lags is too small (not a show-stopper)
+if verbose && info.aclags < info.acminlags % warn if number of autocov lags is too small (not a show-stopper)
     fprintf(2,' *** WARNING: minimum %d lags required (decay factor = %e)\n',info.acminlags,realpow(info.rho,info.aclags));
 end
 end
