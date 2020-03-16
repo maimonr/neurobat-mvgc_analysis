@@ -1,10 +1,10 @@
 function plot_fc_operant_gc(FF_operant_call,trialInfo_operant,operant_t,mvgcStruct_comb)
-cla
+% cla
 k = 1;
 baselineT = -1.5;
 colors = {'r','k'};
 nBat = 4;
-[operant_caller_idxs,operant_listener_idxs,operant_caller_bat_num,operant_listener_bat_num] = deal(zeros(1,length(FF_operant_call)));
+% [operant_caller_idxs,operant_listener_idxs,operant_caller_bat_num,operant_listener_bat_num] = deal(zeros(1,length(FF_operant_call)));
 
 % for exp_k = 1:length(FF_operant_call)
 %     x = cellfun(@(x) x.used_bat_nums,trialInfo_operant{exp_k},'un',0);
@@ -36,7 +36,7 @@ nBat = 4;
 % influence of all other bats _ON_ a given bat (target). Element 2 of 1st dimension of
 % FF_self (source_target_k = 2) is the influence _OF_ a given bat (source)
 % on all other bats.
-target_source_batNums = {operant_listener_bat_num,operant_caller_bat_num};
+% target_source_batNums = {operant_listener_bat_num,operant_caller_bat_num};
 for target_source_k = 1:2
 %     batIdx = ismember(mvgcStruct_comb.batNums,target_source_batNums{target_source_k});
     FF_current = mvgcStruct_comb.FF_self(target_source_k,:,:);
