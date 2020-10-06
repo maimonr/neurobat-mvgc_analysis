@@ -8,8 +8,12 @@ for exp_k = 1:nExp
     X = cat(3,lfpPower{exp_k}{:});
     trialInfo_tmp = [trialInfo{exp_k}{:}];
     used_date_idx = ~cellfun(@isempty,lfpPower{exp_k});
-    expDates = cellfun(@(expDate,lfppower) repmat(expDate,1,size(lfppower,3)),{trialInfo_tmp.expDate},lfpPower{exp_k}(used_date_idx),'un',0);
-    expDates = [expDates{:}];
+    if all(arrayfun(@(x) length(x.expDate),trialInfo_tmp) == 1)
+        expDates = cellfun(@(expDate,lfppower) repmat(expDate,1,size(lfppower,3)),{trialInfo_tmp.expDate},lfpPower{exp_k}(used_date_idx),'un',0);
+        expDates = [expDates{:}];
+    else
+        expDates = [trialInfo_tmp.expDate];
+    end
     all_used_bat_nums = [trialInfo_tmp.used_bat_nums];
     assert(issorted(expDates))
     

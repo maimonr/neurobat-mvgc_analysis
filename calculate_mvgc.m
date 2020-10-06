@@ -147,7 +147,7 @@ for win_k = 1:nWin
     end
     
     FF(:,:,win_k,:) = FF_win;
-    fprintf('%d windows out of %d done, %s',win_k,nWin,datestr(datetime));
+    fprintf('%d windows out of %d done, %s\n',win_k,nWin,datestr(datetime));
 %     if strcmp(subsampleFlag,'none')
 %         pval(:,:,win_k) = mvgc_pval(FF_win,mOrder,nobs,ntrials,1,1,nBat-2,tstat);
 %         [confint(:,:,win_k,1),confint(:,:,win_k,2)] = mvgc_confint(alpha,FF_win,mOrder,nobs,ntrials,1,1,nBat-2,tstat);

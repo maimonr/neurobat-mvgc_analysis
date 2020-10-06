@@ -1,17 +1,21 @@
 function [FF_sim, FF_sim_boot, FF_over_time, FF_over_time_boot] = calculate_mvgc_similarity(mvgc_over_time)
 
 if length(unique(cellfun(@length,{mvgc_over_time.time}))) > 1
-    [~,diff_t_idx(2)] = min(cellfun(@length,{mvgc_over_time.time}));
-    diff_t_idx(1) = setdiff(1:2,diff_t_idx(2));
-    
-    t_idx{diff_t_idx(1)} = true(1,length(mvgc_over_time(diff_t_idx(1)).time));
-    t_idx{diff_t_idx(2)} = false(1,length(mvgc_over_time(diff_t_idx(2)).time));
-    t = mvgc_over_time(diff_t_idx(1)).time;
-    [~,overlap_t_idx(1)] = min(abs(mvgc_over_time(diff_t_idx(2)).time - mvgc_over_time(diff_t_idx(1)).time(1)));
-    [~,overlap_t_idx(2)] = min(abs(mvgc_over_time(diff_t_idx(2)).time - mvgc_over_time(diff_t_idx(1)).time(end)));
-    t_idx{2}(overlap_t_idx(1):overlap_t_idx(2)) = true;
+    [~,short_t_idx] = min(cellfun(@length,{mvgc_over_time.time}));
+    t_idx = cell(1,length(mvgc_over_time));
+    t_bounds = mvgc_over_time(short_t_idx).time([1 end]) + 0.2*[-1 1];
+    for k = 1:length(mvgc_over_time)
+        if k ~= short_t_idx
+            [~,t_idx{k}] = inRange(mvgc_over_time(k).time,t_bounds);
+        else
+            t_idx{k} = true(1,length(mvgc_over_time(k).time));
+        end
+    end
+else
+    t_idx = {true(1,unique(cellfun(@length,{mvgc_over_time.time})))};
 end
-nBoot = 1e5;
+t = mvgc_over_time(1).time;
+nBoot = 1e3;
 
 ff_tmp = arrayfun(@(exp,idx) cellfun(@(x) x(:,:,idx{1}),exp.FF,'un',0),mvgc_over_time,t_idx,'un',0);
 idx = cellfun(@(ff) ~eye(size(ff{1},1)),ff_tmp,'un',0);
@@ -28,8 +32,8 @@ FF_over_time_boot = nan(length(t),nPairs,nDate,nBoot);
 for t_k = 1:length(t)
     a = cellfun(@(exp) cellfun(@(ff) ff(:,:,t_k),exp,'un',0), ff_tmp,'un',0);
     a = cellfun(@(x,idx) cellfun(@(a) a(idx),x,'un',0),a,idx,'un',0);
-    a = cellfun(@(x,y) [x;y],a{1},a{2},'un',0);
-    a = [a{:}];
+    a = vertcat(a{:});
+    a = cell2mat(a);
     FF_over_time(t_k,:,:) = a;
     
     R = corr(a);
